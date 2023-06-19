@@ -47,6 +47,29 @@ export default function App() {
       },
     },
   };
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    setSelectedFile(file);
+  };
+  const setFileUpload = (event) => {
+    if (selectedFile) {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const metadata = {
+          id: myFiles.length + 1,
+          name: selectedFile.name,
+          type: selectedFile.type.split('/')[0],
+          path: `${filePath}${selectedFile.name}`
+        };
+        setMyFiles((prevData) => [...prevData, metadata]);
+        alert(`"${selectedFile.name}" has been uploaded!`);
+      };
+
+      reader.readAsText(selectedFile);
+      setSelectedFile(null)
+    }
+  };
 
   return (
     <>
@@ -119,6 +142,14 @@ export default function App() {
             <p>{selectedFile ? selectedFile.path : filePath}</p>
           </div>
           <div style={styles.controlTools}>
+            <input type="file" onChange={handleFileUpload} />
+            <button style={styles.controlButton}
+              onClick={() => {
+                setFileUpload()
+              }}
+            >Upload</button>
+          </div>
+          <div style={styles.controlTools}>
             <button style={styles.controlButton}
               onClick={() => {
                 if (selectedFile) {
@@ -156,32 +187,25 @@ export default function App() {
                     const newFiles = myFiles.filter(file => file.id !== selectedFile.id);
                     setMyFiles(newFiles);
                     setSelectedFile(null);
+                    alert("File has been successfully deleted");
                   }
                 }
               }}
             >Delete</button>
+            <button style={styles.controlButton}
+              onClick={() => {
+                if (selectedFile) {
+                  const duplicatedFile = {
+                    ...selectedFile,
+                    id: myFiles.length + 1,
+                    name: selectedFile.name + " - Copy"
+                  };
+                  const newFiles = [...myFiles, duplicatedFile];
+                  setMyFiles(newFiles);
+                }
+              }}
+            >Duplicate</button>
           </div>
-          <button style={styles.controlButton}
-            onClick={() => {
-              if (selectedFile) {
-                const duplicatedFile = {
-                  ...selectedFile,
-                  id: generateUniqueId(), // Generate a unique ID for the duplicated file
-                  name: selectedFile.name + " - Copy" // Add " - Copy" to the duplicated file name
-                };
-                const newFiles = [...myFiles, duplicatedFile]; // Add the duplicated file to the file list
-                setMyFiles(newFiles);
-              }
-            }}
-          >Duplicate</button>
-          <button style={styles.controlButton}
-            onClick={() => {
-              if (selectedFile) {
-                const shareUrl = generateShareUrl(selectedFile.path); // Generate a share URL for the selected file
-                window.open(shareUrl, "_blank"); // Open the share URL in a new tab
-              }
-            }}
-          >Share</button>
           <div style={styles.fileContainer}>
             <div style={{ width: "100%", padding: 10 }}>
               {myFiles.map((file) => {
@@ -219,7 +243,6 @@ export default function App() {
                 <p>path: <span style={{ fontStyle: "italic" }}>{selectedFile.path}</span></p>
                 <p>file type: <span style={{ fontStyle: "italic" }}>{selectedFile.type}</span></p>
               </div>
-
             )}
           </div>
         </div>
